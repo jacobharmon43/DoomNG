@@ -36,9 +36,7 @@ namespace DoomNG.Engine.Systems
         /// <param name="spriteBatch">The sprite batch.</param>
         public void Render(SpriteBatch spriteBatch)
         {
-            List<Entity> _entitiesWithSprite = _entityManager.GetEntitiesWith<Sprite>();
-            List<Entity> _entitiesWithTransform = _entityManager.GetEntitiesWith<Transform2D>();
-            List<Entity> _renderable = _entitiesWithSprite.Intersect(_entitiesWithTransform).ToList();
+            List<Entity> _renderable = _entityManager.GetEntitiesWith( typeof(Sprite), typeof(Transform2D));
 
             _renderable = _renderable.OrderBy(entity => _entityManager.HasComponent<SpriteLayer>(entity) ? _entityManager.GetComponent<SpriteLayer>(entity).layer : -1)
             .ThenBy(entity => _entityManager.HasComponent<SpriteLayer>(entity) ? _entityManager.GetComponent<SpriteLayer>(entity).sortOrder : -1).ToList();

@@ -2,11 +2,7 @@
 using Microsoft.Xna.Framework;
 
 namespace DoomNG.DoomSpire.Components
-{
-    /// <summary>
-    /// Marker component for player objects
-    /// </summary>
-    /// <seealso cref="DoomNG.Engine.IComponent" />
+{    
     internal class Player : IComponent
     {
         public enum State { Idle, Moving };

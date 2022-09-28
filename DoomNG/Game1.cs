@@ -45,6 +45,7 @@ namespace DoomNG
             Vector2 screenCenter = screenSize / 2;
 
             _entityManager.CreateEntity(new Sprite(_tmp), new Transform2D(new Point((int)screenCenter.X, (int)screenCenter.Y), new Point(64, 64), 0), new Player(), new Pivot(0.5f, 0.5f), new SpriteLayer(1, 1));
+            _entityManager.CreateEntity(new Sprite(_tmp));
         }
 
         protected override void LoadContent()

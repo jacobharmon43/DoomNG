@@ -6,25 +6,16 @@ using System.Collections.Generic;
 using DoomNG.DoomSpire.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using System;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace DoomNG.DoomSpire.Systems
 {
-    /// <summary>
-    /// Handles all Entities with Player Components within them
-    /// </summary>
-    /// <seealso cref="DoomNG.Engine.ISystem" />
     internal class PlayerSystem : ISystem
     {
         EntityManager _entityManager;
         LineRenderer _lineRenderer;
         GraphicsDevice _graphicsDevice;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PlayerSystem"/> class.
-        /// </summary>
-        /// <param name="entityManager">The entity manager.</param>
         public PlayerSystem(EntityManager entityManager, LineRenderer lineRenderer, GraphicsDevice graphicsDevice)
         {
             _entityManager = entityManager;
@@ -32,10 +23,6 @@ namespace DoomNG.DoomSpire.Systems
             _graphicsDevice = graphicsDevice;
         }
 
-        /// <summary>
-        /// Executes this instance.
-        /// Moves the player via Keyboard input
-        /// </summary>
         public void Execute()
         {
             List<Entity> entities = _entityManager.GetEntitiesWith<Player>();
@@ -48,7 +35,7 @@ namespace DoomNG.DoomSpire.Systems
                 {
                     case Player.State.Idle:
                         Point mousePos = new Point(Mouse.GetState().X, Mouse.GetState().Y);
-                        if (Mouse.GetState().LeftButton == ButtonState.Pressed)
+                        if (Mouse.GetState().LeftButton == ButtonState.Pressed && _graphicsDevice.Viewport.Bounds.Contains(mousePos))
                         {
                             p.SetDesiredPoint(mousePos);
                             p.current = Player.State.Moving;
