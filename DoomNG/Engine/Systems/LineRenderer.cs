@@ -7,7 +7,7 @@ namespace DoomNG.Engine.Systems
 {
     internal class LineRenderer
     {
-        List<Tuple<Point, Point>> _linesToDrawThisFrame = new();
+        List<Tuple<Vector2, Vector2, Color>> _linesToDrawThisFrame = new();
 
         Texture2D pixel = null;
 
@@ -16,21 +16,21 @@ namespace DoomNG.Engine.Systems
             pixel = t;
         }
 
-        public void AddLineToFrame(Point a, Point b)
+        public void AddLineToFrame(Vector2 a, Vector2 b, Color? c = null)
         {
-            _linesToDrawThisFrame.Add(Tuple.Create<Point, Point>(a, b));
+            _linesToDrawThisFrame.Add(Tuple.Create<Vector2, Vector2, Color>(a, b, c != null ? c.Value : Color.White)) ;
         }
 
         public void RenderLines(SpriteBatch _batch)
         {
-            foreach(Tuple<Point, Point> p in _linesToDrawThisFrame)
+            foreach(Tuple<Vector2, Vector2, Color> p in _linesToDrawThisFrame)
             {
-                Vector2 start = new Vector2(p.Item1.X, p.Item1.Y);
-                Vector2 end = new Vector2(p.Item2.X, p.Item2.Y);
+                Vector2 start = p.Item1;
+                Vector2 end = p.Item2;
                 _batch.Draw(pixel,
                     start,
                     null,
-                    Color.White, 
+                    p.Item3, 
                     (float)Math.Atan2(p.Item2.Y - p.Item1.Y, p.Item2.X - p.Item1.X), 
                     Vector2.Zero,
                     new Vector2(Vector2.Distance(start,end), 1f),

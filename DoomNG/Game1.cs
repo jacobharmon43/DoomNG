@@ -21,6 +21,7 @@ namespace DoomNG
         private PlayerSystem _playerSystem;
         private SpriteRenderSystem _renderSystem;
         private LineRenderer _lineRenderer;
+        private RaycastSystem _raycastSystem;
 
         private Texture2D _tmp;
         private Texture2D _pixel;
@@ -40,12 +41,14 @@ namespace DoomNG
             _entityManager = new EntityManager();
             _renderSystem = new SpriteRenderSystem(_entityManager, _spriteBatch);
             _lineRenderer = new LineRenderer(_pixel);
-            _playerSystem = new PlayerSystem(_entityManager, _lineRenderer, GraphicsDevice);
+            _raycastSystem = new RaycastSystem(_entityManager);
+            _playerSystem = new PlayerSystem(_entityManager, _lineRenderer, GraphicsDevice, _raycastSystem);
             Vector2 screenSize = new Vector2(GraphicsDevice.PresentationParameters.BackBufferWidth, GraphicsDevice.PresentationParameters.BackBufferHeight);
             Vector2 screenCenter = screenSize / 2;
 
-            _entityManager.CreateEntity(new Sprite(_tmp), new Transform2D(new Point((int)screenCenter.X, (int)screenCenter.Y), new Point(64, 64), 0), new Player(), new Pivot(0.5f, 0.5f), new SpriteLayer(1, 1));
-            _entityManager.CreateEntity(new Sprite(_tmp));
+            _entityManager.CreateEntity(new Sprite(_tmp), new Transform2D(new Vector2((int)screenCenter.X, (int)screenCenter.Y), new Vector2(64, 64), 0), new Player(), new Pivot(0.5f, 0.5f), new SpriteLayer(1, 1));
+            Vector2 boxPos = new Vector2((int)screenCenter.X, (int)screenCenter.Y) + new Vector2(128, 128);
+            _entityManager.CreateEntity(new Sprite(_pixel), new Transform2D(boxPos, new Vector2(64,64), 0), new BoxCollider(boxPos, new Vector2(64,64)));
         }
 
         protected override void LoadContent()

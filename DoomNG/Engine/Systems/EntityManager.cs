@@ -8,7 +8,7 @@ namespace DoomNG.Engine.Systems
     {
         readonly List<Entity> _entities;
         readonly Dictionary<Type, List<Entity>> _entitiesByType;
-        Dictionary<Entity, List<IComponent>> _components;
+        readonly Dictionary<Entity, List<IComponent>> _components;
         int _nextId = 0;
 
         public EntityManager()
@@ -51,7 +51,7 @@ namespace DoomNG.Engine.Systems
 
         public List<Entity> GetEntitiesWith(params Type[] types)
         {
-            List<Entity> retList = new List<Entity>();
+            List<Entity> retList = new();
             foreach(Type t in types)
             {
                 if(retList.Count == 0)
@@ -75,7 +75,7 @@ namespace DoomNG.Engine.Systems
                     return (T)component;
                 }
             }
-            return default(T);
+            return default;
         }
 
         public bool HasComponent<T>(Entity entity) where T : IComponent

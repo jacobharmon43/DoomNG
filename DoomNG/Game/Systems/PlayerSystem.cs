@@ -7,6 +7,7 @@ using DoomNG.DoomSpire.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.VisualBasic;
 
 namespace DoomNG.DoomSpire.Systems
 {
@@ -15,12 +16,23 @@ namespace DoomNG.DoomSpire.Systems
         EntityManager _entityManager;
         LineRenderer _lineRenderer;
         GraphicsDevice _graphicsDevice;
+        RaycastSystem _raycastSystem;
 
-        public PlayerSystem(EntityManager entityManager, LineRenderer lineRenderer, GraphicsDevice graphicsDevice)
+        Dictionary<Keys, Vector2> _points = new Dictionary<Keys, Vector2>()
+        {
+            {Keys.W, new Vector2(0,-0.05f) },
+            {Keys.A, new Vector2(-0.05f,0) },
+            {Keys.S, new Vector2(0,0.05f) },
+            {Keys.D, new Vector2(0.05f,0) },
+        };
+
+
+        public PlayerSystem(EntityManager entityManager, LineRenderer lineRenderer, GraphicsDevice graphicsDevice, RaycastSystem raycastSystem)
         {
             _entityManager = entityManager;
             _lineRenderer = lineRenderer;
             _graphicsDevice = graphicsDevice;
+            _raycastSystem = raycastSystem; 
         }
 
         public void Execute()
@@ -31,30 +43,54 @@ namespace DoomNG.DoomSpire.Systems
                 Player p = _entityManager.GetComponent<Player>(entity);
                 Transform2D t = _entityManager.GetComponent<Transform2D>(entity);
 
-                switch (p.current)
+                Vector2 halfX = new Vector2(t.scale.X / 2, 0);
+                Vector2 halfY = new Vector2(0, t.scale.Y / 2);
+                Vector2 tinyY = new Vector2(0, t.scale.Y / 10);
+                Vector2 tinyX = new Vector2(t.scale.X / 10, 0);
+                if (Keyboard.GetState().IsKeyDown(Keys.W))
                 {
-                    case Player.State.Idle:
-                        Point mousePos = new Point(Mouse.GetState().X, Mouse.GetState().Y);
-                        if (Mouse.GetState().LeftButton == ButtonState.Pressed && _graphicsDevice.Viewport.Bounds.Contains(mousePos))
-                        {
-                            p.SetDesiredPoint(mousePos);
-                            p.current = Player.State.Moving;
-                        }
-                        break;
-                    case Player.State.Moving:
-                        Vector2 v1 = new Vector2(p.desiredPoint.X, p.desiredPoint.Y);
-                        Vector2 v2 = new Vector2(t.position.X, t.position.Y);
-                        Vector2 diff = v1 - v2;
-                        Vector2 movement = Vector2.Normalize(diff);
-                        Point movement2 = new Point((int)(movement.X * 5), (int)(movement.Y * 5));
-                        t.Translate(movement2);
-                        _lineRenderer.AddLineToFrame(t.position, p.desiredPoint);
-                        if (Vector2.Distance(v1,v2) <= 5)
-                        {
-                            p.current = Player.State.Idle;
-                        }
-                        break;
-                }      
+                    Vector2 origin1 = t.position - halfX + tinyX;
+                    Vector2 origin2 = t.position + halfX - tinyX;
+                    RaycastHit? r1 = _raycastSystem.LineCast(origin1, origin1 - halfY + _points[Keys.W]);
+                    RaycastHit? r2 = _raycastSystem.LineCast(origin2, origin2 - halfY + _points[Keys.W]);
+                    if (!r1.HasValue && !r2.HasValue)
+                        t.Translate(_points[Keys.W] * 100);
+                    _lineRenderer.AddLineToFrame(origin1, origin1 - halfY + _points[Keys.W]);
+                    _lineRenderer.AddLineToFrame(origin2, origin2 - halfY + _points[Keys.W]);
+                }
+                if (Keyboard.GetState().IsKeyDown(Keys.A))
+                {
+                    Vector2 origin1 = t.position - halfY + tinyY;
+                    Vector2 origin2 = t.position + halfY - tinyY;
+                    RaycastHit? r1 = _raycastSystem.LineCast(origin1, origin1 - halfX + _points[Keys.A]);
+                    RaycastHit? r2 = _raycastSystem.LineCast(origin2, origin2 - halfX + _points[Keys.A]);
+                    if (!r1.HasValue && !r2.HasValue)
+                        t.Translate(_points[Keys.A] * 100);
+                    _lineRenderer.AddLineToFrame(origin1, origin1 - halfX + _points[Keys.A]);
+                    _lineRenderer.AddLineToFrame(origin2, origin2 - halfX + _points[Keys.A]);
+                }
+                if (Keyboard.GetState().IsKeyDown(Keys.S))
+                {
+                    Vector2 origin1 = t.position - halfX + tinyX;
+                    Vector2 origin2 = t.position + halfX - tinyX;
+                    RaycastHit? r1 = _raycastSystem.LineCast(origin1, origin1 + halfY + _points[Keys.S]);
+                    RaycastHit? r2 = _raycastSystem.LineCast(origin2, origin2 + halfY + _points[Keys.S]);
+                    if (!r1.HasValue && !r2.HasValue)
+                        t.Translate(_points[Keys.S] * 100);
+                    _lineRenderer.AddLineToFrame(origin1, origin1 + halfY + _points[Keys.S]);
+                    _lineRenderer.AddLineToFrame(origin2, origin2 + halfY + _points[Keys.S]);
+                }
+                if (Keyboard.GetState().IsKeyDown(Keys.D))
+                {
+                    Vector2 origin1 = t.position - halfY + tinyY;
+                    Vector2 origin2 = t.position + halfY - tinyY;
+                    RaycastHit? r1 = _raycastSystem.LineCast(origin1, origin1 + halfX + _points[Keys.D]);
+                    RaycastHit? r2 = _raycastSystem.LineCast(origin2, origin2 + halfX + _points[Keys.D]);
+                    if (!r1.HasValue && !r2.HasValue)
+                        t.Translate(_points[Keys.D] * 100);
+                    _lineRenderer.AddLineToFrame(origin1, origin1 + halfX + _points[Keys.D]);
+                    _lineRenderer.AddLineToFrame(origin2, origin2 + halfX + _points[Keys.D]);
+                }
             }
         }
     }
