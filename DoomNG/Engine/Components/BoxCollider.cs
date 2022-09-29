@@ -15,10 +15,10 @@ namespace DoomNG.Engine.Components
         /// Initializes a new instance of the <see cref="BoxCollider"/> class.
         /// </summary>
         /// <param name="bounds">The bounds.</param>
-        public BoxCollider(Transform2D transform)
+        public BoxCollider(Transform2D transform, Vector2 pivot)
         {
-            Point pos = new Point((int)transform.position.X, (int)transform.position.Y);
             Point scale = new Point((int)transform.scale.X, (int)transform.scale.Y);
+            Point pos = new Point((int)(transform.position.X - (pivot.X * scale.X)), (int)(transform.position.Y - (pivot.Y * scale.Y)));
             this.bounds = new Rectangle(pos, scale);
             vertices[0] = new Vector2(bounds.X, bounds.Y);
             vertices[1] = new Vector2(bounds.X + bounds.Width, bounds.Y);
@@ -26,9 +26,9 @@ namespace DoomNG.Engine.Components
             vertices[3] = new Vector2(bounds.X, bounds.Y + bounds.Height);
         }
 
-        public BoxCollider(Vector2 pos, Vector2 scale)
+        public BoxCollider(Vector2 pos, Vector2 scale, Vector2 pivot)
         {
-            Point pos1 = new Point((int)pos.X, (int)pos.Y);
+            Point pos1 = new Point((int)(pos.X - (pivot.X * scale.X)), (int)(pos.Y  - (pivot.Y * scale.Y)));
             Point scale1 = new Point((int)scale.X, (int)scale.Y);
             this.bounds = new Rectangle(pos1, scale1);
             vertices[0] = new Vector2(bounds.X, bounds.Y);

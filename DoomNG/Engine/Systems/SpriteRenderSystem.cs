@@ -28,7 +28,7 @@ namespace DoomNG.Engine.Systems
         /// <summary>
         /// Executes this instance.
         /// </summary>
-        public void Execute() { }
+        public void Execute(GameTime gameTime) { }
 
         /// <summary>
         /// Renders sprites within the Sprite Batch
@@ -45,7 +45,7 @@ namespace DoomNG.Engine.Systems
                 Sprite s = _entityManager.GetComponent<Sprite>(entity);
                 Transform2D t = _entityManager.GetComponent<Transform2D>(entity);
                 Vector2 pivot = _entityManager.HasComponent<Pivot>(entity) ? _entityManager.GetComponent<Pivot>(entity).PivotPoint : new Vector2(0, 0);
-                spriteBatch.Draw(s.texture, t.position, null, Color.White, t.rotation, new Vector2(pivot.X * t.scale.X, pivot.Y * t.scale.Y), new Vector2(t.scale.X/ s.texture.Width, t.scale.Y / s.texture.Height), SpriteEffects.None, 0);
+                spriteBatch.Draw(s.texture, t.position, null, Color.White, t.rotation, pivot, new Vector2(t.scale.X/ s.texture.Width, t.scale.Y / s.texture.Height), SpriteEffects.None, 0);
             }
         }
     }

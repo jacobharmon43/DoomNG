@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using System;
 
 namespace DoomNG.Engine.Components
 {
@@ -38,5 +39,7 @@ namespace DoomNG.Engine.Components
         {
             this.position += new Vector2(x,y);
         }
+
+        public Vector2 forward => new Vector2((float)Math.Cos(rotation * MathHelper.TwoPi/180), (float)Math.Sin(rotation * MathHelper.TwoPi / 180)); 
     }
 }

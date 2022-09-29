@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -18,7 +19,7 @@ namespace DoomNG.Engine.Systems
             _components = new Dictionary<Entity, List<IComponent>>();
         }
 
-        public void Execute() { }
+        public void Execute(GameTime gameTime) { }
 
         public Entity CreateEntity(params IComponent[] components)
         {

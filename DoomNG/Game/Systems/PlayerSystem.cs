@@ -7,7 +7,7 @@ using DoomNG.DoomSpire.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.VisualBasic;
+using System.Linq;
 
 namespace DoomNG.DoomSpire.Systems
 {
@@ -18,12 +18,15 @@ namespace DoomNG.DoomSpire.Systems
         GraphicsDevice _graphicsDevice;
         RaycastSystem _raycastSystem;
 
+        const float MAXDELTA = 6;
+        float mouseLastFrameX;
+
         Dictionary<Keys, Vector2> _points = new Dictionary<Keys, Vector2>()
         {
-            {Keys.W, new Vector2(0,-0.05f) },
-            {Keys.A, new Vector2(-0.05f,0) },
-            {Keys.S, new Vector2(0,0.05f) },
-            {Keys.D, new Vector2(0.05f,0) },
+            {Keys.W, new Vector2(0,-1) },
+            {Keys.A, new Vector2(-1,0) },
+            {Keys.S, new Vector2(0,1) },
+            {Keys.D, new Vector2(1,0) },
         };
 
 
@@ -32,13 +35,52 @@ namespace DoomNG.DoomSpire.Systems
             _entityManager = entityManager;
             _lineRenderer = lineRenderer;
             _graphicsDevice = graphicsDevice;
-            _raycastSystem = raycastSystem; 
+            _raycastSystem = raycastSystem;
+            mouseLastFrameX = Mouse.GetState().X;
         }
 
-        public void Execute()
+        public void Execute(GameTime gameTime)
+        {
+            MovePlayerCheckCollisions();
+            GetVisibleVertices();
+
+            List<Entity> playerEntities = _entityManager.GetEntitiesWith<Player>();
+            Transform2D playerTransform = _entityManager.GetComponent<Transform2D>(playerEntities.FirstOrDefault());
+
+            var mouseNow = Mouse.GetState();
+            float mouseDiff = mouseNow.X - mouseLastFrameX;
+            playerTransform.rotation += mouseDiff * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            _lineRenderer.AddLineToFrame(playerTransform.position, playerTransform.position + playerTransform.forward * 64, Color.Black);
+            mouseLastFrameX = mouseNow.X;
+           
+        }
+
+        void GetVisibleVertices()
+        {
+            List<Entity> entities = _entityManager.GetEntitiesWith<BoxCollider>();
+            List<Entity> playerEntities = _entityManager.GetEntitiesWith<Player>();
+            Transform2D playerTransform = _entityManager.GetComponent<Transform2D>(playerEntities.FirstOrDefault());
+            System.Diagnostics.Debug.WriteLine(entities.Count);
+            foreach (Entity entity in entities)
+            {
+                BoxCollider bc = _entityManager.GetComponent<BoxCollider>(entity);
+                Vector2[] vertices = bc.GetVertices();
+
+                foreach (Vector2 vertice in vertices)
+                {
+                    RaycastHit? r = _raycastSystem.LineCast(playerTransform.position, vertice);
+                    if (r.HasValue && r.Value.point == vertice)
+                    {
+                        _lineRenderer.AddLineToFrame(playerTransform.position, r.Value.point);
+                    }
+                }
+            }
+        }
+
+        void MovePlayerCheckCollisions()
         {
             List<Entity> entities = _entityManager.GetEntitiesWith<Player>();
-            foreach(Entity entity in entities)
+            foreach (Entity entity in entities)
             {
                 Player p = _entityManager.GetComponent<Player>(entity);
                 Transform2D t = _entityManager.GetComponent<Transform2D>(entity);
@@ -54,9 +96,7 @@ namespace DoomNG.DoomSpire.Systems
                     RaycastHit? r1 = _raycastSystem.LineCast(origin1, origin1 - halfY + _points[Keys.W]);
                     RaycastHit? r2 = _raycastSystem.LineCast(origin2, origin2 - halfY + _points[Keys.W]);
                     if (!r1.HasValue && !r2.HasValue)
-                        t.Translate(_points[Keys.W] * 100);
-                    _lineRenderer.AddLineToFrame(origin1, origin1 - halfY + _points[Keys.W]);
-                    _lineRenderer.AddLineToFrame(origin2, origin2 - halfY + _points[Keys.W]);
+                        t.Translate(_points[Keys.W] * 3);
                 }
                 if (Keyboard.GetState().IsKeyDown(Keys.A))
                 {
@@ -65,9 +105,7 @@ namespace DoomNG.DoomSpire.Systems
                     RaycastHit? r1 = _raycastSystem.LineCast(origin1, origin1 - halfX + _points[Keys.A]);
                     RaycastHit? r2 = _raycastSystem.LineCast(origin2, origin2 - halfX + _points[Keys.A]);
                     if (!r1.HasValue && !r2.HasValue)
-                        t.Translate(_points[Keys.A] * 100);
-                    _lineRenderer.AddLineToFrame(origin1, origin1 - halfX + _points[Keys.A]);
-                    _lineRenderer.AddLineToFrame(origin2, origin2 - halfX + _points[Keys.A]);
+                        t.Translate(_points[Keys.A] * 3);
                 }
                 if (Keyboard.GetState().IsKeyDown(Keys.S))
                 {
@@ -76,9 +114,7 @@ namespace DoomNG.DoomSpire.Systems
                     RaycastHit? r1 = _raycastSystem.LineCast(origin1, origin1 + halfY + _points[Keys.S]);
                     RaycastHit? r2 = _raycastSystem.LineCast(origin2, origin2 + halfY + _points[Keys.S]);
                     if (!r1.HasValue && !r2.HasValue)
-                        t.Translate(_points[Keys.S] * 100);
-                    _lineRenderer.AddLineToFrame(origin1, origin1 + halfY + _points[Keys.S]);
-                    _lineRenderer.AddLineToFrame(origin2, origin2 + halfY + _points[Keys.S]);
+                        t.Translate(_points[Keys.S] * 3);
                 }
                 if (Keyboard.GetState().IsKeyDown(Keys.D))
                 {
@@ -87,9 +123,12 @@ namespace DoomNG.DoomSpire.Systems
                     RaycastHit? r1 = _raycastSystem.LineCast(origin1, origin1 + halfX + _points[Keys.D]);
                     RaycastHit? r2 = _raycastSystem.LineCast(origin2, origin2 + halfX + _points[Keys.D]);
                     if (!r1.HasValue && !r2.HasValue)
-                        t.Translate(_points[Keys.D] * 100);
-                    _lineRenderer.AddLineToFrame(origin1, origin1 + halfX + _points[Keys.D]);
-                    _lineRenderer.AddLineToFrame(origin2, origin2 + halfX + _points[Keys.D]);
+                        t.Translate(_points[Keys.D] * 3);
+                }
+
+                if (Keyboard.GetState().IsKeyDown(Keys.R))
+                {
+                    t.rotation += 0.05f;
                 }
             }
         }
