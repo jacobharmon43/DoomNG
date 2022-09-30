@@ -40,6 +40,21 @@ namespace DoomNG.Engine.Components
             this.position += new Vector2(x,y);
         }
 
-        public Vector2 forward => new Vector2((float)Math.Cos(rotation * MathHelper.TwoPi/180), (float)Math.Sin(rotation * MathHelper.TwoPi / 180)); 
+        public Vector2 forward => GetForward();
+
+        private Vector2 GetForward(){
+            rotation = ClampAngle(rotation);
+            return new Vector2((float)Math.Cos(rotation), (float)Math.Sin(rotation));
+        }
+
+        public float ClampAngle(float angle){
+            while(angle >= 360){
+                angle -= 360;
+            }
+            if(angle < 0){
+                angle += 360;
+            }
+            return angle;
+        }
     }
 }
