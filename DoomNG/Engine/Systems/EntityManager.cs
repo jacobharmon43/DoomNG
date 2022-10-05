@@ -32,6 +32,15 @@ namespace DoomNG.Engine.Systems
             return entity;
         }
 
+        public void RemoveEntity(Entity e)
+        {
+            foreach(IComponent component in _components[e])
+            {
+                _entitiesByType[component.GetType()].Remove(e);
+            }
+            _entities.Remove(e);
+        }
+
         public void SetComponent<T>(Entity entity, T component) where T : IComponent
         {
             Type type = component.GetType();
@@ -65,6 +74,16 @@ namespace DoomNG.Engine.Systems
                 }
             }
             return retList;
+        }
+
+        public T[] GetComponents<T>() where T : IComponent
+        {
+            List<T> retList = new();
+            foreach(Entity e in _entitiesByType[typeof(T)])
+            {
+                retList.Add(GetComponent<T>(e));
+            }
+            return retList.ToArray();
         }
 
         public T GetComponent<T>(Entity entity) where T : IComponent

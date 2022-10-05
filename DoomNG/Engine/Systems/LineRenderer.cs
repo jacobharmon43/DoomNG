@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using DoomNG.Engine.Helpers;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
@@ -9,11 +10,11 @@ namespace DoomNG.Engine.Systems
     {
         List<Tuple<Vector2, Vector2, Color>> _linesToDrawThisFrame = new();
 
-        Texture2D pixel = null;
+        Texture2D pixel;
 
-        public LineRenderer(Texture2D t)
+        public LineRenderer()
         {
-            pixel = t;
+            pixel = TextureDistributor.GetTexture("White");
         }
 
         public void AddLineToFrame(Vector2 a, Vector2 b, Color? c = null)

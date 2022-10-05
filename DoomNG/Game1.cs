@@ -9,6 +9,7 @@ using DoomNG.DoomSpire.Components;
 using DoomNG.DoomSpire.Systems;
 
 using System;
+using DoomNG.Engine.Helpers;
 
 namespace DoomNG
 {
@@ -22,12 +23,14 @@ namespace DoomNG
         private SpriteRenderSystem _renderSystem;
         private LineRenderer _lineRenderer;
         private RaycastSystem _raycastSystem;
+        private ColliderSystem _colliderSystem;
 
         private Texture2D _tmp;
         private Texture2D _pixel;
         private Texture2D _redSquare;
         private Texture2D _brown;
-        string _debugText = "Wow this engine is great!";
+
+        private Camera _cam;
         SpriteFont _font;
 
         public Game1()
@@ -40,21 +43,26 @@ namespace DoomNG
         protected override void Initialize()
         {
             base.Initialize();
+
             _entityManager = new EntityManager();
+            _lineRenderer = new LineRenderer();
             _renderSystem = new SpriteRenderSystem(_entityManager, _spriteBatch);
-            _lineRenderer = new LineRenderer(_pixel);
             _raycastSystem = new RaycastSystem(_entityManager);
-            _playerSystem = new PlayerSystem(_entityManager, _lineRenderer, GraphicsDevice, _raycastSystem);
+            _playerSystem = new PlayerSystem(_entityManager, _raycastSystem);
+            _colliderSystem = new ColliderSystem(_entityManager);
 
             Vector2 screenSize = new Vector2(GraphicsDevice.PresentationParameters.BackBufferWidth, GraphicsDevice.PresentationParameters.BackBufferHeight);
             Vector2 screenCenter = screenSize / 2;
             Vector2 halfPivot = new Vector2(0.5f, 0.5f);
 
-            _entityManager.CreateEntity(new Sprite(_redSquare), new Transform2D(Vector2.Zero, new Vector2(64, 64), 0), new Player(), new Pivot(halfPivot), new SpriteLayer(1, 1));
-            _entityManager.CreateEntity(new Sprite(_pixel), new Transform2D(screenCenter, new Vector2(64,64), 0), new BoxCollider(screenCenter, new Vector2(64,64), halfPivot), new SpriteLayer(1,0), new Pivot(0.5f, 0.5f));
-            _entityManager.CreateEntity(new Sprite(_pixel), new Transform2D(screenCenter - new Vector2(256,256), new Vector2(64, 64), 0), new BoxCollider(screenCenter - new Vector2(256, 256), new Vector2(64, 64), halfPivot), new SpriteLayer(1, 0), new Pivot(0.5f, 0.5f));
-            _entityManager.CreateEntity(new Sprite(_pixel), new Transform2D(screenCenter + new Vector2(256,256), new Vector2(64, 64), 0), new BoxCollider(screenCenter + new Vector2(256, 256), new Vector2(64, 64), halfPivot), new SpriteLayer(1, 0), new Pivot(0.5f, 0.5f));
+            _entityManager.CreateEntity(new Sprite(_pixel), new Transform2D(new Vector2(screenCenter.X, screenSize.Y), new Vector2(screenSize.X,64), 0), new BoxCollider(), new SpriteLayer(1,0), new Pivot(0.5f, 0.5f));
+            _entityManager.CreateEntity(new Sprite(_pixel), new Transform2D(new Vector2(screenSize.X, screenCenter.Y), new Vector2(64, screenSize.Y), 0), new BoxCollider(), new SpriteLayer(1, 0), new Pivot(0.5f, 0.5f));
             _entityManager.CreateEntity(new Sprite(_brown), new Transform2D(screenCenter, new Vector2(1024, 1024), 0), new SpriteLayer(0,0), new Pivot(halfPivot));
+            Entity e = _entityManager.CreateEntity(new Camera(new Vector3(screenCenter.X, screenCenter.Y, 0)));
+
+            _playerSystem.CreatePlayer();
+
+            _cam = _entityManager.GetComponent<Camera>(e);
 
         }
 
@@ -71,6 +79,10 @@ namespace DoomNG
             _pixel = new Texture2D(_graphics.GraphicsDevice, 1,1);
             _pixel.SetData(new Color[] { Color.White });
 
+            TextureDistributor.AddTexture("Brown", _brown);
+            TextureDistributor.AddTexture("Player", _redSquare);
+            TextureDistributor.AddTexture("White", _pixel);
+
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _font = Content.Load<SpriteFont>("PixelFont");
         }
@@ -78,8 +90,8 @@ namespace DoomNG
         protected override void Update(GameTime gameTime)
         {
             if (!base.IsActive) return;
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
+            KeyboardQuery.UpdateKeyboard();
+            _colliderSystem.Execute(gameTime);
             _playerSystem.Execute(gameTime);
             base.Update(gameTime);
         }
@@ -87,10 +99,9 @@ namespace DoomNG
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            _spriteBatch.Begin();
+            _spriteBatch.Begin(transformMatrix: _cam.Transform);
             _renderSystem.Render(_spriteBatch);
             _lineRenderer.RenderLines(_spriteBatch);
-            _spriteBatch.DrawString(_font, _debugText, new Vector2(GraphicsDevice.PresentationParameters.BackBufferWidth / 2, 10), Color.White);
             _spriteBatch.End();
             base.Draw(gameTime);
         }

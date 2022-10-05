@@ -28,5 +28,8 @@ namespace DoomNG.Engine.Components
         {
             PivotPoint = new Vector2(x, y);
         }
+
+        public float X => PivotPoint.X;
+        public float Y => PivotPoint.Y;
     }
 }

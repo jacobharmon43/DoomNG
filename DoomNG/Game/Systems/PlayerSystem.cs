@@ -1,25 +1,38 @@
-﻿using DoomNG.Engine;
-using DoomNG.Engine.Systems;
-using DoomNG.Engine.Components;
-
+﻿using System.Linq;
 using System.Collections.Generic;
-using DoomNG.DoomSpire.Components;
+
+using DoomNG.Engine.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
-using System.Linq;
+
+using DoomNG.Engine;
+using DoomNG.Engine.Systems;
+using DoomNG.Engine.Components;
+
+using DoomNG.DoomSpire.Components;
+
+using FSA;
 
 namespace DoomNG.DoomSpire.Systems
 {
     internal class PlayerSystem : ISystem
     {
         EntityManager _entityManager;
-        LineRenderer _lineRenderer;
-        GraphicsDevice _graphicsDevice;
         RaycastSystem _raycastSystem;
+        Texture2D _playerTexture;
 
-        const float MAXDELTA = 6;
-        float mouseLastFrameX;
+        Entity _playerEntity;
+        Transform2D _transform;
+
+        float _movementSpeed = 3;
+
+        const int collisionDivisions = 8;
+
+        StateMachine _playerStateMachine;
+
+        float _verticalVelocity = 0;
+        float _deltaTime;
 
         Dictionary<Keys, Vector2> _points = new Dictionary<Keys, Vector2>()
         {
@@ -30,107 +43,108 @@ namespace DoomNG.DoomSpire.Systems
         };
 
 
-        public PlayerSystem(EntityManager entityManager, LineRenderer lineRenderer, GraphicsDevice graphicsDevice, RaycastSystem raycastSystem)
+        public PlayerSystem(EntityManager entityManager, RaycastSystem raycastSystem)
         {
             _entityManager = entityManager;
-            _lineRenderer = lineRenderer;
-            _graphicsDevice = graphicsDevice;
             _raycastSystem = raycastSystem;
-            mouseLastFrameX = Mouse.GetState().X;
+
+            _playerTexture = TextureDistributor.GetTexture("Player");
         }
+
+        Command MoveRight = new Command();
+        Command MoveLeft = new Command();
+        Command Jump = new Command();
 
         public void Execute(GameTime gameTime)
         {
-            MovePlayerCheckCollisions();
-            GetVisibleVertices();
+            if (_transform == null) return;
+            Camera c = _entityManager.GetComponents<Camera>().FirstOrDefault();
+            c.Follow(_transform, new Vector3(0, 0, 0));
+            _deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            _playerStateMachine.RunStateMachine(_deltaTime);
+            _transform.position += Vector2.UnitY * _verticalVelocity;
 
-            List<Entity> playerEntities = _entityManager.GetEntitiesWith<Player>();
-            Transform2D playerTransform = _entityManager.GetComponent<Transform2D>(playerEntities.FirstOrDefault());
-
-            var mouseNow = Mouse.GetState();
-            float mouseDiff = mouseNow.X - mouseLastFrameX;
-            playerTransform.rotation += mouseDiff * (float)gameTime.ElapsedGameTime.TotalSeconds;
-            _lineRenderer.AddLineToFrame(playerTransform.position, playerTransform.position + playerTransform.forward * 64, Color.Black);
-            mouseLastFrameX = mouseNow.X;
-           
         }
 
-        void GetVisibleVertices()
+        bool NDividedDirectionalCollisionDetection(int divisions, Vector2 direction, Transform2D transform)
         {
-            List<Entity> entities = _entityManager.GetEntitiesWith<BoxCollider>();
-            List<Entity> playerEntities = _entityManager.GetEntitiesWith<Player>();
-            Transform2D playerTransform = _entityManager.GetComponent<Transform2D>(playerEntities.FirstOrDefault());
-            System.Diagnostics.Debug.WriteLine(entities.Count);
-            foreach (Entity entity in entities)
-            {
-                BoxCollider bc = _entityManager.GetComponent<BoxCollider>(entity);
-                Vector2[] vertices = bc.GetVertices();
+            bool inXDirection = direction.Y == 0;
+            float sign = inXDirection ? (direction.X > 0 ? -1 : 1) : (direction.Y > 0 ? -1 : 1);
 
-                foreach (Vector2 vertice in vertices)
-                {
-                    RaycastHit? r = _raycastSystem.LineCast(playerTransform.position, vertice);
-                    if (r.HasValue && r.Value.point == vertice)
-                    {
-                        _lineRenderer.AddLineToFrame(playerTransform.position, r.Value.point);
-                    }
-                }
+            Vector2 firstPosition = transform.position - (inXDirection ? Vector2.UnitY * transform.scale.Y : Vector2.UnitX * transform.scale.X) / 2;
+            Vector2 pointIncrement = (inXDirection ? Vector2.UnitY * transform.scale.Y : Vector2.UnitX * transform.scale.X) / (divisions - 1);
+
+            Vector2[] origins = new Vector2[divisions];
+            for (int i = 0; i < divisions; i++)
+            {
+                origins[i] = firstPosition + pointIncrement * i;
             }
+
+            float tinyIncrement = (inXDirection ? transform.scale.X : transform.scale.Y) / 20;
+            float rayLength = (inXDirection ? transform.scale.X : transform.scale.Y) / 2 + tinyIncrement;
+            bool returnValue = false;
+            foreach (Vector2 point in origins)
+            {
+                RaycastHit? raycastHit = _raycastSystem.LineCast(point, point + direction * rayLength);
+                returnValue |= raycastHit.HasValue;
+            }
+            return returnValue;
         }
 
-        void MovePlayerCheckCollisions()
+        public void CreatePlayer()
         {
-            List<Entity> entities = _entityManager.GetEntitiesWith<Player>();
-            foreach (Entity entity in entities)
+                
+
+            _playerEntity = _entityManager.CreateEntity(new Sprite(_playerTexture), new Transform2D(Vector2.Zero, new Vector2(64, 64), 0), new Player(), new Pivot(0.5f, 0.5f), new SpriteLayer(1, 1));
+            _transform = _entityManager.GetComponent<Transform2D>(_playerEntity);
+
+            MoveLeft.Execute = () =>
             {
-                Player p = _entityManager.GetComponent<Player>(entity);
-                Transform2D t = _entityManager.GetComponent<Transform2D>(entity);
+                if (!NDividedDirectionalCollisionDetection(collisionDivisions, _points[Keys.A], _transform))
+                    _transform.Translate(_points[Keys.A] * _movementSpeed);
+            };
 
-                Vector2 halfX = new Vector2(t.scale.X / 2, 0);
-                Vector2 halfY = new Vector2(0, t.scale.Y / 2);
-                Vector2 tinyY = new Vector2(0, t.scale.Y / 10);
-                Vector2 tinyX = new Vector2(t.scale.X / 10, 0);
-                if (Keyboard.GetState().IsKeyDown(Keys.W))
-                {
-                    Vector2 origin1 = t.position - halfX + tinyX;
-                    Vector2 origin2 = t.position + halfX - tinyX;
-                    RaycastHit? r1 = _raycastSystem.LineCast(origin1, origin1 - halfY + _points[Keys.W]);
-                    RaycastHit? r2 = _raycastSystem.LineCast(origin2, origin2 - halfY + _points[Keys.W]);
-                    if (!r1.HasValue && !r2.HasValue)
-                        t.Translate(_points[Keys.W] * 3);
-                }
-                if (Keyboard.GetState().IsKeyDown(Keys.A))
-                {
-                    Vector2 origin1 = t.position - halfY + tinyY;
-                    Vector2 origin2 = t.position + halfY - tinyY;
-                    RaycastHit? r1 = _raycastSystem.LineCast(origin1, origin1 - halfX + _points[Keys.A]);
-                    RaycastHit? r2 = _raycastSystem.LineCast(origin2, origin2 - halfX + _points[Keys.A]);
-                    if (!r1.HasValue && !r2.HasValue)
-                        t.Translate(_points[Keys.A] * 3);
-                }
-                if (Keyboard.GetState().IsKeyDown(Keys.S))
-                {
-                    Vector2 origin1 = t.position - halfX + tinyX;
-                    Vector2 origin2 = t.position + halfX - tinyX;
-                    RaycastHit? r1 = _raycastSystem.LineCast(origin1, origin1 + halfY + _points[Keys.S]);
-                    RaycastHit? r2 = _raycastSystem.LineCast(origin2, origin2 + halfY + _points[Keys.S]);
-                    if (!r1.HasValue && !r2.HasValue)
-                        t.Translate(_points[Keys.S] * 3);
-                }
-                if (Keyboard.GetState().IsKeyDown(Keys.D))
-                {
-                    Vector2 origin1 = t.position - halfY + tinyY;
-                    Vector2 origin2 = t.position + halfY - tinyY;
-                    RaycastHit? r1 = _raycastSystem.LineCast(origin1, origin1 + halfX + _points[Keys.D]);
-                    RaycastHit? r2 = _raycastSystem.LineCast(origin2, origin2 + halfX + _points[Keys.D]);
-                    if (!r1.HasValue && !r2.HasValue)
-                        t.Translate(_points[Keys.D] * 3);
-                }
+            MoveRight.Execute = () =>
+            {
+                if (!NDividedDirectionalCollisionDetection(collisionDivisions, _points[Keys.D], _transform))
+                    _transform.Translate(_points[Keys.D] * _movementSpeed);
+            };
 
-                if (Keyboard.GetState().IsKeyDown(Keys.R))
-                {
-                    t.rotation += 0.05f;
-                }
-            }
+            Jump.Execute = () =>
+            {
+                if(_playerStateMachine.CurrentState.Name == "Grounded")
+                    _verticalVelocity -= 5;
+            };
+
+            KeyboardQuery.AddCommand(Keys.A, KeyboardQuery.KeyPressState.Pressed, MoveLeft);
+            KeyboardQuery.AddCommand(Keys.D, KeyboardQuery.KeyPressState.Pressed, MoveRight);
+            KeyboardQuery.AddCommand(Keys.Space, KeyboardQuery.KeyPressState.Started, Jump);
+
+
+            _playerStateMachine = new StateMachineBuilder()
+                .WithState("Grounded")
+                .WithOnEnter(() => _verticalVelocity = 0)
+                .WithTransition("Falling", () => !NDividedDirectionalCollisionDetection(collisionDivisions, Vector2.UnitY, _transform))
+
+                .WithState("Falling")
+                .WithOnRun(() => _verticalVelocity += 10 * _deltaTime)
+                .WithTransition("Grounded", () => NDividedDirectionalCollisionDetection(collisionDivisions, Vector2.UnitY, _transform))
+
+                .Build();
+        }
+
+        public void RemovePlayer()
+        {
+            KeyboardQuery.RemoveCommand(Keys.A, KeyboardQuery.KeyPressState.Pressed, MoveLeft);
+            KeyboardQuery.RemoveCommand(Keys.D, KeyboardQuery.KeyPressState.Pressed, MoveRight);
+            KeyboardQuery.RemoveCommand(Keys.Space, KeyboardQuery.KeyPressState.Started, Jump);
+
+            MoveLeft.Execute = null;
+            MoveRight.Execute = null;
+            Jump.Execute = null;
+
+            _entityManager.RemoveEntity(_playerEntity);
+            _transform = null;
         }
     }
 }
