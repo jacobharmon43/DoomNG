@@ -1,11 +1,10 @@
-﻿using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
+using System.Collections.Generic;
 
-namespace DoomNG.Engine.Systems
+namespace DoomNG.Engine
 {
-    internal class EntityManager : ISystem
+    internal class EntityManager : IEntityManager
     {
         readonly List<Entity> _entities;
         readonly Dictionary<Type, List<Entity>> _entitiesByType;
@@ -18,8 +17,6 @@ namespace DoomNG.Engine.Systems
             _entitiesByType = new Dictionary<Type, List<Entity>>();
             _components = new Dictionary<Entity, List<IComponent>>();
         }
-
-        public void Execute(GameTime gameTime) { }
 
         public Entity CreateEntity(params IComponent[] components)
         {
