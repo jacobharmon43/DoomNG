@@ -13,10 +13,11 @@ using DoomNG.Engine.Components;
 using DoomNG.DoomSpire.Components;
 
 using FSA;
+using System;
 
 namespace DoomNG.DoomSpire.Systems
 {
-    internal class PlayerSystem : ISystem
+    internal class PlayerSystem : IUpdateSystem
     {
         EntityManager _entityManager;
         RaycastSystem _raycastSystem;
@@ -47,7 +48,6 @@ namespace DoomNG.DoomSpire.Systems
         {
             _entityManager = entityManager;
             _raycastSystem = raycastSystem;
-
             _playerTexture = TextureDistributor.GetTexture("Player");
         }
 
@@ -93,9 +93,16 @@ namespace DoomNG.DoomSpire.Systems
 
         public void CreatePlayer()
         {
-                
 
-            _playerEntity = _entityManager.CreateEntity(new Sprite(_playerTexture), new Transform2D(Vector2.Zero, new Vector2(64, 64), 0), new Player(), new Pivot(0.5f, 0.5f), new SpriteLayer(1, 1));
+
+            _playerEntity = _entityManager.CreateEntity(new EntityBuilder()
+                .WithComponent(new Sprite(_playerTexture))
+                .WithComponent(new Transform2D(Vector2.Zero, new Vector2(64,64), 0))
+                .WithComponent(new Player())
+                .WithComponent(new Pivot(0.5f,0.5f))
+                .WithComponent(new SpriteLayer(Layers.GetLayer(Layer.Player),1))
+                .Build());
+
             _transform = _entityManager.GetComponent<Transform2D>(_playerEntity);
 
             MoveLeft.Execute = () =>

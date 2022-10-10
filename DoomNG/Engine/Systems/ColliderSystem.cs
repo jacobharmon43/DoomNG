@@ -1,10 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using DoomNG.Engine.Components;
+using System;
 
 namespace DoomNG.Engine.Systems
 {
-    internal class ColliderSystem : ISystem
+    internal class ColliderSystem : IUpdateSystem
     {
         EntityManager _entityManager;
 

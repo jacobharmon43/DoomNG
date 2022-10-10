@@ -3,37 +3,18 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 
 namespace DoomNG.Engine.Systems
 {
-    /// <summary>
-    /// Renders entities that contain the Sprite and Transform2D Components
-    /// </summary>
-    /// <seealso cref="DoomNG.Engine.ISystem" />
-    internal class SpriteRenderSystem : ISystem
+    internal class SpriteRenderSystem : IRenderSystem
     {
         readonly EntityManager _entityManager;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SpriteRenderSystem"/> class.
-        /// </summary>
-        /// <param name="entityManager"> The entity manager.</param>
-        /// <param name="batch"> The batch.</param>
-        public SpriteRenderSystem(EntityManager entityManager, SpriteBatch batch)
+        public SpriteRenderSystem(EntityManager entityManager)
         {
             _entityManager = entityManager;
         }
 
-        /// <summary>
-        /// Executes this instance.
-        /// </summary>
-        public void Execute(GameTime gameTime) { }
-
-        /// <summary>
-        /// Renders sprites within the Sprite Batch
-        /// </summary>
-        /// <param name="spriteBatch">The sprite batch.</param>
         public void Render(SpriteBatch spriteBatch)
         {
             List<Entity> _renderable = _entityManager.GetEntitiesWith( typeof(Sprite), typeof(Transform2D));

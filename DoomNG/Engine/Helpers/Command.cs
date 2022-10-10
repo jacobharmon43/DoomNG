@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DoomNG.Engine
+namespace DoomNG.Engine.Helpers
 {
     internal class Command
     {

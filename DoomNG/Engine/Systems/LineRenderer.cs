@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace DoomNG.Engine.Systems
 {
-    internal class LineRenderer
+    internal class LineRenderer : IRenderSystem
     {
         List<Tuple<Vector2, Vector2, Color>> _linesToDrawThisFrame = new();
 
@@ -22,7 +22,7 @@ namespace DoomNG.Engine.Systems
             _linesToDrawThisFrame.Add(Tuple.Create<Vector2, Vector2, Color>(a, b, c != null ? c.Value : Color.White)) ;
         }
 
-        public void RenderLines(SpriteBatch _batch)
+        public void Render(SpriteBatch _batch)
         {
             foreach(Tuple<Vector2, Vector2, Color> p in _linesToDrawThisFrame)
             {

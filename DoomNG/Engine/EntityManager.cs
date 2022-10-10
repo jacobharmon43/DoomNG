@@ -51,6 +51,38 @@ namespace DoomNG.Engine
             _entitiesByType[type].Add(entity);
         }
 
+        public void RemoveComponent<T>(Entity entity) where T : IComponent
+        {
+            _entitiesByType[typeof(T)].Remove(entity);
+            foreach(IComponent c in _components[entity])
+            {
+                if(c.GetType() == typeof(T))
+                {
+                    _components[entity].Remove(c);
+                    break;
+                }
+            }
+
+        }
+
+        public bool HasComponent<T>(Entity entity) where T : IComponent
+        {
+            if (!_entitiesByType.ContainsKey(typeof(T))) return false;
+            return _entitiesByType[typeof(T)].Contains(entity);
+        }
+
+        public T GetComponent<T>(Entity entity) where T : IComponent
+        {
+            foreach (var component in _components[entity])
+            {
+                if (component.GetType() == typeof(T))
+                {
+                    return (T)component;
+                }
+            }
+            return default;
+        }
+
         public List<Entity> GetEntitiesWith<T>() where T : IComponent
         {
             return _entitiesByType[typeof(T)];
@@ -81,24 +113,6 @@ namespace DoomNG.Engine
                 retList.Add(GetComponent<T>(e));
             }
             return retList.ToArray();
-        }
-
-        public T GetComponent<T>(Entity entity) where T : IComponent
-        {
-            foreach(var component in _components[entity])
-            {
-                if(component.GetType() == typeof(T))
-                {
-                    return (T)component;
-                }
-            }
-            return default;
-        }
-
-        public bool HasComponent<T>(Entity entity) where T : IComponent
-        {
-            if (!_entitiesByType.ContainsKey(typeof(T))) return false;
-            return _entitiesByType[typeof(T)].Contains(entity);
         }
     }
 }

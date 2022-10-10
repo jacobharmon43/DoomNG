@@ -1,11 +1,8 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
 
 namespace DoomNG.Engine
 {
-    /// <summary>
-    /// Marker interface for all systems, contains single execute method
-    /// </summary>
-    internal interface ISystem{
-        public void Execute(GameTime gameTime);
+    internal interface ISystem
+    {
     }
 }

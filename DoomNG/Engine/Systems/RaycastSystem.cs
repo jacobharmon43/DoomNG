@@ -3,10 +3,11 @@ using Microsoft.Xna.Framework;
 using DoomNG.Engine.Helpers;
 using System.Linq;
 using System.Collections.Generic;
+using System;
 
 namespace DoomNG.Engine.Systems
 {
-    internal class RaycastSystem : ISystem
+    internal class RaycastSystem : IUpdateSystem
     {
         readonly EntityManager _entityManager;
 
