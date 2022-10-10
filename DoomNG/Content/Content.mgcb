@@ -32,3 +32,8 @@
 /processorParam:TextureFormat=Compressed
 /build:PixelFont.spritefont
 
+#begin TestMap.tmx
+/importer:
+/processor:
+/build:TestMap.tmx
+
