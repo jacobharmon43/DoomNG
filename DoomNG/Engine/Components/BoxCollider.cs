@@ -1,42 +1,31 @@
 ﻿using Microsoft.Xna.Framework;
+using System;
 
 namespace DoomNG.Engine.Components
 {
-    internal class BoxCollider : Collider, IComponent
+    /// <summary>
+    /// Stores offsets from transform center
+    /// </summary>
+    internal class BoxCollider : IComponent
     {
-        Vector2[] vertices = new Vector2[4];
-        Rectangle bounds;
+        public Vector2[] Vertices = new Vector2[4];
 
-        public BoxCollider()
+        public BoxCollider() { }
+
+        public BoxCollider(Vector2[] vertices)
         {
-
+            if(vertices.Length != 4) { throw new ArgumentException($"Too many vertices in BoxCollider constructor {vertices}"); }
+            Vertices = vertices;
         }
 
-        public void UpdatePosition(Transform2D transform)
+        public BoxCollider(BoxCollider other)
         {
-            Point pos = new Point((int)transform.position.X, (int)transform.position.Y);
-            Point scale = new Point((int)transform.scale.X, (int)transform.scale.Y);
-            this.bounds = new Rectangle(pos, scale);
-            vertices[0] = new Vector2(bounds.X, bounds.Y);
-            vertices[1] = new Vector2(bounds.X + bounds.Width, bounds.Y);
-            vertices[2] = new Vector2(bounds.X, bounds.Y + bounds.Height);
-            vertices[3] = new Vector2(bounds.X + bounds.Width, bounds.Y + bounds.Height);
+            Vertices = other.Vertices;
         }
 
-        public void UpdatePosition(Transform2D transform, Pivot pivot)
+        public override object Clone()
         {
-            Point scale = new Point((int)transform.scale.X, (int)transform.scale.Y);
-            Point pos = new Point((int)(transform.position.X - (pivot.X * scale.X)), (int)(transform.position.Y - (pivot.Y * scale.Y)));
-            this.bounds = new Rectangle(pos, scale);
-            vertices[0] = new Vector2(bounds.X, bounds.Y);
-            vertices[1] = new Vector2(bounds.X + bounds.Width, bounds.Y);
-            vertices[2] = new Vector2(bounds.X + bounds.Width, bounds.Y + bounds.Height);
-            vertices[3] = new Vector2(bounds.X, bounds.Y + bounds.Height);
-        }
-
-        public Vector2[] GetVertices()
-        {
-            return vertices;
+            return new BoxCollider(this);
         }
     }
 }

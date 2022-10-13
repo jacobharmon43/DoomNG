@@ -1,9 +1,8 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
-using System;
 
 namespace DoomNG.Engine
 {
-    internal interface IRenderSystem : ISystem
+    internal interface IRender
     {
         public void Render(SpriteBatch batch);
     }

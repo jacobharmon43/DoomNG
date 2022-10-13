@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace DoomNG.Engine.Helpers
+namespace DoomNG.Engine
 {
     internal static class TextureDistributor
     {
