@@ -23,7 +23,7 @@ namespace DoomNG.Engine
 
         public void AddObject(GameObject obj)
         {
-            obj.ownerScene = this;
+            obj.OwnerScene = this;
             Objects.Add(obj);
             foreach(IComponent component in obj.GetComponents())
             {

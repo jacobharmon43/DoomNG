@@ -36,6 +36,18 @@
                 "${workspaceFolder}/DoomNG/DoomNG.csproj"
             ],
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build-DoomNG",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/DoomNG/DoomNG.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
         }
     ]
 }

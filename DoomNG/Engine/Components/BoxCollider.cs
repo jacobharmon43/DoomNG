@@ -8,19 +8,26 @@ namespace DoomNG.Engine.Components
     /// </summary>
     internal class BoxCollider : IComponent
     {
-        public Vector2[] Vertices = new Vector2[4];
-
         public BoxCollider() { }
 
-        public BoxCollider(Vector2[] vertices)
-        {
-            if(vertices.Length != 4) { throw new ArgumentException($"Too many vertices in BoxCollider constructor {vertices}"); }
-            Vertices = vertices;
-        }
+        public BoxCollider(BoxCollider other){}
 
-        public BoxCollider(BoxCollider other)
-        {
-            Vertices = other.Vertices;
+        public Vector2[] GetVertices(){
+            Transform2D t = gameObject.transform;
+            if(t == null) return new Vector2[0];
+
+            Vector2 pivot = t.pivot;
+            Vector2 position = t.position;
+            Vector2 scale = t.scale;
+            Vector2 center = position;
+
+            Vector2[] vertices = new Vector2[4];
+            vertices[0] = center + new Vector2(-scale.X, -scale.Y)/2;
+            vertices[1] = center + new Vector2(scale.X, -scale.Y)/2;
+            vertices[2] = center + new Vector2(scale.X, scale.Y)/2;
+            vertices[3] = center + new Vector2(-scale.X, scale.Y)/2;
+
+            return vertices;
         }
 
         public override object Clone()

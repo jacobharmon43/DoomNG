@@ -1,4 +1,6 @@
 ﻿using DoomNG.Engine.Components;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 
 namespace DoomNG.Engine.Systems
@@ -18,33 +20,13 @@ namespace DoomNG.Engine.Systems
             return new RaycastHit2D();
         }
 
-        public RaycastHit2D Linecast(Vector2 start, Vector2 end, float distance)
+        public RaycastHit2D? Linecast(Vector2 start, Vector2 end)
         {
             foreach(GameObject o in owner.GetObjects())
             {
                 BoxCollider collider = o.GetComponent<BoxCollider>();
-                Transform2D transform = o.GetComponent<Transform2D>();
                 if (collider == null) continue;
-
-                Line casted = new Line(start, end);
-                Vector2[] points = collider.Vertices;
-                Line[] lines = new Line[6];
-                for(int i = 0; i < 4; i++)
-                {
-                    for(int j = i+1; j < 4; j++)
-                    {
-                        lines[i] = new Line(points[i], points[j]);
-                    }
-                }
-
-                foreach(Line line in lines)
-                {
-                    if(intersects(casted, line))
-                    {
-                        Vector2 normal = new Vector2(line.start.Y - line.end.Y, line.end.X - line.start.X);
-                        return new RaycastHit2D(collider, normal);
-                    }
-                }
+                return LineIntersects(start, end, collider);
             }
             return new RaycastHit2D();
         }
@@ -58,26 +40,87 @@ namespace DoomNG.Engine.Systems
         {
             return ccw(A.start, B.start, B.end) != ccw(A.end, B.start, B.end) && ccw(A.start, A.end, B.start) != ccw(A.start, A.end, B.end);
         }
-    }
 
-    internal struct Line
-    {
-        public Vector2 start;
-        public Vector2 end;
-        public Line(Vector2 a, Vector2 b){
-            start = a; 
-            end = b;
-        }
-    }
-
-    internal struct RaycastHit2D{
-        public BoxCollider hit;
-        public Vector2 normal;
-
-        public RaycastHit2D(BoxCollider hit, Vector2 normal)
+        private static RaycastHit2D? LineIntersects(Vector2 origin, Vector2 end, BoxCollider checkCollision)
         {
-            this.hit = hit;
-            this.normal = normal;
+            if (checkCollision == null) return null;
+            Vector2[] vertices = checkCollision.GetVertices();
+            Line l = new(origin, end);
+
+            Line[] segments = new Line[vertices.Length];
+            for(int i = 0; i < vertices.Length; i++)
+            {
+                int endPoint = i + 1;
+                if (i + 1 == vertices.Length)
+                    endPoint = 0;
+                segments[i] = new Line(vertices[i], vertices[endPoint]);
+            }
+
+            List<RaycastHit2D> hitPoints = new List<RaycastHit2D>();
+            foreach(Line segment in segments)
+            {
+                Vector2? p = l.Intersects(segment);
+                if (p != null)
+                {
+                    Vector2 normal = new((segment.end.Y - segment.start.Y), (segment.end.X - segment.start.X));
+                    float distance = Vector2.Distance(new Vector2(p.Value.X, p.Value.Y), new Vector2(origin.X, origin.Y));
+                    hitPoints.Add(new RaycastHit2D (checkCollision, distance, normal));
+                }
+            }
+            hitPoints = hitPoints.OrderBy(x => x.distance).ToList();
+            return hitPoints.Count() > 0 ? hitPoints.First() : null;
         }
-    };
+    }
+}
+
+internal struct Line
+{
+    public Vector2 start;
+    public Vector2 end;
+    public Line(Vector2 a, Vector2 b){
+        start = a; 
+        end = b;
+    }
+
+    public Vector2? Intersects(Line other)
+    {
+        float s1_x, s1_y, s2_x, s2_y;
+        s1_x = this.end.X - this.start.X;
+        s1_y = this.end.Y - this.start.Y;
+        s2_x = other.end.X - other.start.X;
+        s2_y = other.end.Y - other.start.Y;
+
+        float s_num = -s1_y * (this.start.X - other.start.X) + s1_x * (this.start.Y - other.start.Y);
+        float s_den = (-s2_x * s1_y + s1_x * s2_y);
+        if (s_den == 0) return null;
+        float s = s_num / s_den;
+
+        float t_num = (s2_x * (this.start.Y - other.start.Y) - s2_y * (this.start.X - other.start.X));
+        float t_den = (-s2_x * s1_y + s1_x * s2_y);
+        if (t_den == 0) return null;
+        float t = t_num / t_den;
+
+        Vector2 p = new Vector2();
+
+        if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
+        {
+            p.X = (int)(this.start.X + (t * s1_x));
+            p.Y = (int)(this.start.Y+ (t * s1_y));
+            return p;
+        }
+        return null;
+    }
+}
+
+internal struct RaycastHit2D{
+    public BoxCollider hit;
+    public Vector2 normal;
+    public float distance;
+
+    public RaycastHit2D(BoxCollider hit, float distance, Vector2 normal)
+    {
+        this.hit = hit;
+        this.distance = distance;
+        this.normal = normal;
+    }
 }

@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using DoomNG.Engine.Components;
+
 namespace DoomNG.Engine
 {
     internal class GameObject : ICloneable
     {
-        public Scene ownerScene;
+        public Scene OwnerScene;
         Dictionary<Type, IComponent> _components;
 
         //Constructors
@@ -72,5 +74,7 @@ namespace DoomNG.Engine
         {
             return new GameObject(this);
         }
+
+        public Transform2D transform => GetComponent<Transform2D>();
     }
 }
