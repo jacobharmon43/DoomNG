@@ -2,7 +2,7 @@
 
 namespace DoomNG.Engine
 {
-    internal abstract class IComponent : ICloneable
+    internal abstract class Component : ICloneable
     {
         public GameObject gameObject;
         public virtual void Awake() { }

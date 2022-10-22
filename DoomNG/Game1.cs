@@ -1,4 +1,5 @@
 ﻿using DoomNG.Engine;
+using DoomNG.Engine.Systems;
 using DoomNG.FroggyJump;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -39,6 +40,7 @@ namespace DoomNG
 
         protected override void Update(GameTime gameTime)
         {
+            Time.deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
             if (!base.IsActive) return;
             scene.Update();
             KeyboardQuery.UpdateKeyboard();

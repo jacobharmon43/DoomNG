@@ -21,25 +21,26 @@ namespace DoomNG.Engine
             Physics = new PhysicsSystem(this);
         }
 
-        public void AddObject(GameObject obj)
+        public GameObject AddObject(GameObject obj)
         {
             obj.OwnerScene = this;
             Objects.Add(obj);
-            foreach(IComponent component in obj.GetComponents())
+            foreach(Component component in obj.GetComponents())
             {
                 component.Awake();
             }
-            foreach (IComponent component in obj.GetComponents())
+            foreach (Component component in obj.GetComponents())
             {
                 component.Start();
             }
+            return obj;
         }
 
         public virtual void Update()
         {
             foreach (GameObject obj in Objects)
             {
-                foreach (IComponent component in obj.GetComponents())
+                foreach (Component component in obj.GetComponents())
                 {
                     component.Update();
                 }
@@ -50,7 +51,7 @@ namespace DoomNG.Engine
         {
             foreach (GameObject obj in Objects)
             {
-                foreach (IComponent component in obj.GetComponents())
+                foreach (Component component in obj.GetComponents())
                 {
                     component.Update();
                 }
@@ -61,7 +62,7 @@ namespace DoomNG.Engine
         {
             foreach (GameObject obj in Objects)
             {
-                foreach (IComponent component in obj.GetComponents())
+                foreach (Component component in obj.GetComponents())
                 {
                     component.LateUpdate();
                 }

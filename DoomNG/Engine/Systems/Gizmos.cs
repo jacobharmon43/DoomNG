@@ -3,12 +3,25 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using System;
 
+using DoomNG.Engine.Types;
+
 namespace DoomNG.Engine.Systems{
     internal static class Gizmos{
         static List<Tuple<Line, Color>> _renderLines = new List<Tuple<Line,Color>>();
 
-        public static void AddLineToRender(Line l, Color c){
+        public static void DrawLine(Line l, Color c){
             _renderLines.Add(new Tuple<Line, Color>(l,c));
+        }
+
+        public static void DrawBox(Vector2[] vertices)
+        {
+            for(int i = 0; i < vertices.Length; i++)
+            {
+                for(int j = 0; j < vertices.Length; j++)
+                {
+                    DrawLine(new Line(vertices[i], vertices[j]), Color.Green);
+                }
+            }
         }
 
         public static void Render(SpriteBatch batch){

@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace DoomNG.Engine.Components
 {
-    internal class SpriteRenderer : IComponent
+    internal class SpriteRenderer : Component
     {
         public Texture2D Texture;
         public Color Color;

@@ -9,17 +9,17 @@ namespace DoomNG.Engine
     internal class GameObject : ICloneable
     {
         public Scene OwnerScene;
-        Dictionary<Type, IComponent> _components;
+        Dictionary<Type, Component> _components;
 
         //Constructors
         public GameObject(){
-            _components = new Dictionary<Type, IComponent>();
+            _components = new Dictionary<Type, Component>();
         }
 
-        public GameObject(params IComponent[] components)
+        public GameObject(params Component[] components)
         {
-            _components = new Dictionary<Type, IComponent>();
-            foreach (IComponent component in components)
+            _components = new Dictionary<Type, Component>();
+            foreach (Component component in components)
             {
                 AddComponent(component);
             }
@@ -27,44 +27,45 @@ namespace DoomNG.Engine
 
         public GameObject(GameObject other)
         {
-            _components = new Dictionary<Type, IComponent>();
-            foreach (IComponent component in other.GetComponents())
+            _components = new Dictionary<Type, Component>();
+            foreach (Component component in other.GetComponents())
             {
                 AddComponent(component);
             }
         }
 
         //Methods
-        public void AddComponent<T>(T component) where T : IComponent
+        public void AddComponent<T>(T component) where T : Component
         {
-            if(_components.ContainsKey(component.GetType())) throw new Exception($"Key already exists in dictionary for type {component.GetType().Name}");
-            IComponent componentToAdd = (T)component.Clone();
+            Type type = component.GetType();
+            if(_components.ContainsKey(type)) throw new Exception($"Key already exists in dictionary for type {component.GetType().Name}");
+            Component componentToAdd = (T)component.Clone();
             _components.Add(component.GetType(), componentToAdd);
             componentToAdd.gameObject = this;
         }
 
-        public bool TryAddComponent<T>(T component) where T : IComponent
+        public bool TryAddComponent<T>(T component) where T : Component
         {
             if (_components.ContainsKey(component.GetType())) return false;
             AddComponent(component);
             return true;
         }
 
-        public void RemoveComponent<T>() where T : IComponent
+        public void RemoveComponent<T>() where T : Component
         {
             if (!_components.ContainsKey(typeof(T))) return;
             _components[typeof(T)].OnDestroy();
             _components.Remove(typeof(T));
         }
 
-        public T GetComponent<T>() where T : IComponent
+        public T GetComponent<T>() where T : Component
         {
             if(_components.ContainsKey(typeof(T)))
                 return (T)_components[typeof(T)];
             return null;
         }
 
-        public IComponent[] GetComponents()
+        public Component[] GetComponents()
         {
             return _components.Values.ToArray();
         }

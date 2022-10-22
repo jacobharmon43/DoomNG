@@ -2,7 +2,7 @@
 
 namespace DoomNG.Engine.Components
 {
-    internal class Transform2D : IComponent
+    internal class Transform2D : Component
     {
         public Vector2 position;
         public Vector2 scale;
